@@ -1,0 +1,197 @@
+---
+title: 'Class 6: R Functions'
+author: 'Camryn McCann (PID: A15437387)'
+date: "10/14/2021"
+output: pdf_document
+---
+
+#A play with Rmarkdown
+This is some plain text. I can make things **bold**. I can also make *things italic*.
+
+```{r}
+#This is a code chunk
+plot(1:10)
+```
+
+##R Functions 
+In today's class we are going to write a function together that grades some students work. 
+
+Questions for Today:
+
+> **Q1.** Write a function grade() to determine an overall grade from a vector of student homework assignment scores dropping the lowest single score. If a student misses a homework (i.e. has an NA value) this can be used as a score to be potentially dropped. Your final function should be adquately explained with code comments and be able to work on an example class gradebook such as this one in CSV format: “https://tinyurl.com/gradeinput” [3pts]
+
+
+```{r}
+#Example input vectors to start with
+student1 <- c(100, 100, 100, 100, 100, 100, 100, 90)
+student2 <- c(100, NA, 90, 90, 90, 90, 97, 80)
+student3 <- c(90, NA, NA, NA, NA, NA, NA, NA)
+```
+
+
+Let's start with student1 and find their average score.
+```{r}
+mean(student1)
+```
+
+But we want to drop the lowest score...
+We could try the **min()** function
+
+```{r}
+min(student1)
+```
+
+The **which.min()** function looks useful:
+```{r}
+which.min(student1)
+```
+
+Cool! This gave us the position of the lowest score
+
+Now we can remove this value using - (everything but)
+
+```{r}
+student1[-which.min(student1)]
+```
+
+Now we can put this into the mean() to get average score when dropping the lowest score!
+
+```{r}
+mean(student1[-which.min(student1)])
+```
+
+This will not work for student 2 because the NA does not hold value.
+```{r}
+mean(student2[-which.min(student2)])
+```
+
+We need to remove the NA elements from the vector.
+```{r}
+mean(student2[-which.min(student2)], na.rm=TRUE)
+```
+Oh no! This is not what we want, the function dropped the 80 (i.e the lowest numerical value) and not NA (i,e the missing HW)
+
+Now let's check student 3 as well
+```{r}
+student3
+```
+```{r}
+mean(student3[-which.min(student3)],na.rm=TRUE)
+```
+Ugh! We run into a similar problem with student3...
+
+One new idea is to give NA a numerical value: **0**
+Let's go back and look at student2
+
+```{r}
+is.na(student2)
+```
+
+The **is.na()** function returns a logical vector in which TRUE elements represent where NA values are present.
+
+```{r}
+which(is.na(student2))
+```
+
+Now that we located NA values, we can convert them to zeros.
+
+```{r}
+student.prime <- student2 
+student.prime
+student.prime[which(is.na(student.prime))]=0
+student.prime
+```
+
+Let's put it all together to get average score, dropping the lowest where we map NA values to zero. 
+```{r}
+student.prime <- student2 
+student.prime[which(is.na(student.prime))]=0
+mean(student.prime[-which.min(student.prime)])
+```
+
+It worked! Now, we need to see if it works for student 3, to determine if this would be helpful in a function for all the students in our gradebook.
+```{r}
+student.prime <- student3 
+student.prime[which(is.na(student.prime))]=0
+mean(student.prime[-which.min(student.prime)])
+```
+
+Perfect! Now its time to rewrite for clarity!
+```{r}
+x<- student3
+# Map NA values to zero 
+x[which(is.na(x))]=0
+#Then find the mean without the lowest value
+mean(x[-which.min(x)])
+```
+
+
+Now we can use this as the body of our function
+```{r}
+grade <- function(x){
+  #make sure all the scores are read as numbers
+  x <- as.numeric(x)
+  # Map NA values to zero 
+  x[which(is.na(x))]=0
+  #Then find the mean without the lowest value
+  mean(x[-which.min(x)])}
+```
+
+Let's test it!
+```{r}
+grade(student1)
+grade(student2)
+grade(student3)
+```
+
+Next, let's apply our function to the full gradebook CSV file.
+
+```{r}
+scores <- read.csv("https://tinyurl.com/gradeinput", row.names = 1)
+scores
+```
+
+Test it on just one student first
+```{r}
+grade(scores[3,])
+```
+
+*It originally was not working because R is reading the numbers as non-numeric, so we needed to edit our grade function to force read the file as numbers. (already went back to original and edited which is why it works)*
+
+
+Finally, lets apply them to the entire table using **apply()** function!
+```{r}
+apply(scores,1,grade)
+```
+
+
+
+> **Q2.** Using your grade() function and the supplied gradebook, Who is the top scoring student overall in the gradebook? [3pts]
+
+```{r}
+which.max(apply(scores,1,grade))
+```
+
+
+
+> **Q3.** From your analysis of the gradebook, which homework was toughest on students (i.e. ob- tained the lowest scores overall? [2pts]
+
+```{r}
+apply(scores,2,mean,na.rm=TRUE)
+which.min(apply(scores,2,mean,na.rm=TRUE))
+```
+
+
+
+> **Q4.** Optional Extension: From your analysis of the gradebook, which homework was most predictive of overall score (i.e. highest correlation with average grade score)? [1pt]
+
+```{r}
+mask <- scores
+mask[is.na(scores)]=0
+cor(apply(scores,1,grade), mask)
+```
+```{r}
+which.max(cor(apply(scores,1,grade), mask))
+```
+
+
