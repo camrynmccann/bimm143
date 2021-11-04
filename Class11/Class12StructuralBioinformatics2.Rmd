@@ -1,0 +1,32 @@
+---
+title: 'Class12: Structural Bioinformatics 2'
+author: 'Camryn McCann (PID: A15437387)'
+date: "11/4/2021"
+output: html_document
+---
+
+#Comparative Structure Analysis of Adenylate Kinase
+
+Using bio3d package
+
+```{r}
+library(bio3d)
+
+pdb <- read.pdb("1hel")
+pdb
+```
+
+Let's use a bioinformatics method called NMA(Normal Mode Analysis) to predict the dynamics (flexibility) of this enzyme
+
+```{r}
+modes <- nma(pdb)
+plot(modes)
+```
+
+Make a trajectory! (movie of its predicted motion).
+
+```{r}
+mktrj(modes, file="nma.pdb")
+```
+
+![](mypicture.png)
