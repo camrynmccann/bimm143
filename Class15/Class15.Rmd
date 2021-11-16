@@ -1,0 +1,266 @@
+---
+title: "Class15"
+author: 'Camryn McCann (PID: A15437387)'
+date: "11/16/2021"
+output: pdf_document
+---
+
+#First lets call our programs
+```{r}
+library(BiocManager)
+library(DESeq2)
+```
+#Now let's import our data. Then look at each.
+```{r}
+counts <- read.csv("airway_scaledcounts.csv",row.names=1)
+metadata <-  read.csv("airway_metadata.csv")
+```
+
+```{r}
+head(counts)
+head(metadata)
+```
+
+> **Q1. How many genes are in this dataset?**
+
+```{r}
+nrow(counts)
+```
+
+This dataset has 38694 genes.
+
+> **Q2. How many ‘control’ cell lines do we have?** 
+
+```{r}
+grep("control",metadata[,2])
+```
+
+```{r}
+sum(metadata$dex == "control")
+```
+
+There are 4 'control' cell lines. 
+
+
+#Toy differential gene expression
+
+We know row 1,3,5, and 7 are control samples, so we can now use that to find a control mean. 
+
+```{r}
+control <- metadata[metadata[,"dex"]=="control",]
+control.counts <- counts[ ,control$id]
+control.mean <- rowSums( control.counts )/4 
+head(control.mean)
+```
+
+> **Q3. How would you make the above code in either approach more robust?** 
+
+Instead of rowSums, we can do rowMeans because doing rowSums then dividing it by 4 is less robust, and would not work if the data set changed. A better way to do it is as follows using rowMeans: 
+
+```{r}
+control.inds <- metadata$dex == "control"
+control.counts <- counts[ ,control.inds]
+control.mean <- rowMeans( control.counts ) 
+head(control.mean)
+```
+
+> **Q4. Follow the same procedure for the treated samples (i.e. calculate the mean per gene across drug treated samples and assign to a labeled vector called treated.mean)** 
+
+```{r}
+treated.inds <- metadata$dex == "treated"
+treated.counts <- counts[ ,treated.inds]
+treated.mean <- rowMeans( treated.counts ) 
+head(treated.mean)
+```
+
+For easier access we can put our means together. 
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+colSums(meancounts)
+```
+
+
+> **Q5 (a). Create a scatter plot showing the mean of the treated samples against the mean of the control samples. Your plot should look something like the following.** 
+
+```{r}
+plot(control.mean, treated.mean, xlab= "Control", ylab= "Treated")
+```
+
+
+> **Q5 (b).You could also use the ggplot2 package to make this figure producing the plot below. What geom_?() function would you use for this plot?**
+
+We would use geom_point after calling the ggplot2 package to make a simialr figure. 
+
+```{r}
+library(ggplot2)
+ggplot(meancounts, aes(x=control.mean, y=treated.mean)) + geom_point()
+```
+
+These plots are not great, and we need a log transformation in order to see more details from our data. 
+
+>**Q6. Try plotting both axes on a log scale. What is the argument to plot() that allows you to do this? ** 
+
+Adding the argument log to the plot() arguemnt will allow for the axes to be on a log scale.
+
+```{r}
+plot(meancounts, log = "xy", xlab= "Log of Control", ylab= "Log of Treated", col = "dark blue")
+```
+
+We often use log2 in the biology field because of its mathematical properties that make interpretation more straight forward. 
+
+```{r}
+#lets look at a math example to understand more about log2
+log2(10/10)
+log2(20/10)
+log2(40/10) 
+log2(80/10)
+# we can also look at decreasing
+log2(5/10)
+log2(2.5/10)
+
+```
+
+As we see above, when there is no change, there is a 0 value. When there is increases there are positive values, and then for decreases there are negative values. This property leads us to work with *log2(foldchange)* all the time in the genomics and proteomic fields. 
+
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+
+Some of the results are not helpful, specifically NaN (not a number) and -Inf (negative infinity). These are due to zeros in our gene set, and are a result of dividing by or doing the log of 0. So let's edit our data to remove those genes.
+
+```{r}
+#first, we find the zeros.
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+to.rm <- unique(zero.vals[,1])
+#Now we remove them from our meancounts dataframe.
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+
+How many genes are left now?
+```{r}
+nrow(mycounts)
+```
+
+> **Q7. What is the purpose of the arr.ind argument in the which() function call above? Why would we then take the first column of the output and need to call the unique() function?** 
+
+The arr.ind arguement within the which() function is for array indices, and it indicates when marked as TRUE, that the array indices should be returned when both positions are arrays. So now we know which positions have zeros. We use the unique() function to extract unique elements. Specifically in this case, we use it to not count any row with a zero in both samples more than once. 
+
+
+
+A common threshold used for calling something differentially expressed is a log2(FoldChange) of greater than 2 or less than -2. Let’s filter the dataset both ways to see how many genes are up or down-regulated.
+
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+```
+
+
+> **Q8. Using the up.ind vector above can you determine how many up regulated genes we have at the greater than 2 fc level?** 
+
+```{r}
+count(up.ind)
+```
+
+> **Q9. Using the down.ind vector above can you determine how many down regulated genes we have at the greater than 2 fc level?** 
+
+```{r}
+count(down.ind)
+```
+
+
+> **Q10. Do you trust these results? Why or why not?** 
+
+While this is a good preliminary analysis, we do not have any indicators of statistical significance that can lead us to trust a conclusion of sorts, so we should not trust them. We must continue to analyze in order to actually have results we can trust.
+
+#DESeq2 analysis 
+
+
+We can call our DESeq2 package to better analyze count data like ours.
+```{r}
+library(DESeq2)
+citation("DESeq2")
+```
+
+Now lets set up the input. 
+```{r}
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex)
+dds
+```
+
+Next, we can run DESeq analysis. 
+```{r}
+dds <- DESeq(dds)
+```
+
+Then, we can get the results.
+```{r}
+res <- results(dds)
+res
+```
+
+We need to convert the object to a data frame as well to view it in full. 
+```{r}
+#View(as.data.frame(res))
+```
+Some of the results have NA, and their baseMean is 0. This is because DESeq does independent filtering that filters our results with little or no chance of significance. 
+
+```{r}
+summary(res)
+```
+
+```{r}
+res05 <- results(dds, alpha=0.05)
+summary(res05)
+```
+
+*We will come back to this section next class* 
+
+
+
+# Data Visualization
+
+Let's make a volcano plot.These summary figures are frequently used to highlight the proportion of genes that are both significantly regulated and display a high fold change.
+```{r}
+plot( res$log2FoldChange,  -log(res$padj), 
+      xlab="Log2(FoldChange)",
+      ylab="-Log(P-value)")
+```
+This plot is not very useful because ll the p-values of significance are clustered and hidden in the bottom.
+
+
+We can transform this with log and add lines to make this visualization more useful. 
+```{r}
+plot( res$log2FoldChange,  -log(res$padj), 
+ ylab="-Log(P-value)", xlab="Log2(FoldChange)")
+
+# Add some cut-off lines
+abline(v=c(-2,2), col="darkgray", lty=2)
+abline(h=-log(0.05), col="darkgray", lty=2)
+```
+
+Now we can plot it once again but re-color the plot based on the genes (i.e points) that we care about -- that is those with large fold-change and low p-values.
+```{r}
+# Setup our custom point color vector 
+mycols <- rep("gray", nrow(res))
+mycols[ abs(res$log2FoldChange) > 2 ]  <- "red" 
+
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+# Volcano plot with custom colors 
+plot( res$log2FoldChange,  -log(res$padj), 
+ col=mycols, ylab="-Log(P-value)", xlab="Log2(FoldChange)" )
+
+# Cut-off lines
+abline(v=c(-2,2), col="gray", lty=2)
+abline(h=-log(0.1), col="gray", lty=2)
+```
+
+
+Instead of this, we can also use the "EnhancedVolcano" feature of BiocManager that utilizes ggplot under the hood, which we will do next class. 
+
+
