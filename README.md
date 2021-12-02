@@ -11,4 +11,4 @@ It showcases my work throughout this quarter and the skills I learned in this co
 - Principal Component Analysis Mini-project [source](https://github.com/camrynmccann/bimm143/blob/main/Class09_MiniProject/Class09_MiniProject.pdf)
 - Halloween Project [source]
 - Structual Bioinformatics 1 [source](https://github.com/camrynmccann/bimm143/blob/main/Class11.pdf)
-- Structural Bioinformatics 2 [source](
+- Structural Bioinformatics 2 [source](https://github.com/camrynmccann/bimm143/blob/main/Class11_Part2.pdf)
