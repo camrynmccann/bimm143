@@ -12,3 +12,4 @@ It showcases my work throughout this quarter and the skills I learned in this co
 - Halloween Project [source]
 - Structual Bioinformatics 1 [source](https://github.com/camrynmccann/bimm143/blob/main/Class11.pdf)
 - Structural Bioinformatics 2 [source](https://github.com/camrynmccann/bimm143/blob/main/Class11_Part2.pdf)
+-Transcriptomics and the Analysis of RNA-Seq data [source](
