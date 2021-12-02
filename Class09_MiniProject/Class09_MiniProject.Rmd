@@ -7,12 +7,6 @@ output: pdf_document
 
 **To start off our mini-project, lets download and set up the data!**
 
-```{r}
-#First we can read the data file
-read.csv("WisconsinCancer.csv")
-```
-
-
 Now that we have the data let's save it as fna.data
 ```{r}
 fna.data <- "WisconsinCancer.csv"
