@@ -1,3 +1,3 @@
 # bimm143
 
-This repo is for my UC San Diego Bioinformatics Class
+This repository is for my UC San Diego Bioinformatics Class
