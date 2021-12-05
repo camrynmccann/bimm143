@@ -16,7 +16,7 @@ It showcases my work throughout this quarter and the skills I learned in this co
 ## As github_documents
 - Data Explorationa and Visualization with R [source]
 - R Functions and R Packages from CRAN and BioConductor [source]
-- Introduction to Machine Learning in Bioinformatics [source]
+- Introduction to Machine Learning in Bioinformatics [source](https://github.com/camrynmccann/bimm143/blob/main/Class08!.Rmd)
 - Principal Component Analysis Mini-project [source]
 - Structual Bioinformatics 1 [source]
 - Structural Bioinformatics 2 [source]
