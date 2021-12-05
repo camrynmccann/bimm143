@@ -14,7 +14,7 @@ It showcases my work throughout this quarter and the skills I learned in this co
 - Vaccination Rate Mini-project [source](https://github.com/camrynmccann/bimm143/blob/main/Class17/Class17_Covid19MiniProject.pdf)
 
 ## As Rmarkdown github_documents
-- R Functions and R Packages from CRAN and BioConductor [source](https://github.com/camrynmccann/bimm143/blob/main/Class06!.Rmd)
+- R Functions and R Packages from CRAN and BioConductor [source](https://github.com/camrynmccann/bimm143/blob/main/Class06.md)
 - Introduction to Machine Learning in Bioinformatics [source](https://github.com/camrynmccann/bimm143/blob/main/Class08!.md)
 - Principal Component Analysis Mini-project [source](https://github.com/camrynmccann/bimm143/blob/main/Class09_MiniProject.md)
 - Structual Bioinformatics 1 [source]
