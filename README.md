@@ -20,4 +20,4 @@ It showcases my work throughout this quarter and the skills I learned in this co
 - Structual Bioinformatics 1 [source](https://github.com/camrynmccann/bimm143/blob/main/Class11.md)
 - Structural Bioinformatics 2 [source](https://github.com/camrynmccann/bimm143/blob/main/Class12StructuralBioinformatics2.md)
 - Transcriptomics and the Analysis of RNA-Seq data [source](https://github.com/camrynmccann/bimm143/blob/main/Class15.md)
-- Vaccination Rate Mini-project [source]
+- Vaccination Rate Mini-project [source](https://github.com/camrynmccann/bimm143/blob/main/Class17.md)
