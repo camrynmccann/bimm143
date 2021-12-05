@@ -1,0 +1,342 @@
+---
+title: "Machine Learning 1"
+author: 'Camryn McCann (PID: A15437387)'
+date: "10/21/2021"
+output: github_document
+---
+
+First up is clustering methods 
+
+#Kmeans clustering 
+
+The functon in base R to do Kmeans clustering is called *kmeans()* 
+
+First, generate some example data for clustering where we know what the answer should be
+
+```{r}
+tmp <- c(rnorm(30,-3), rnorm(30,3))
+x <- cbind(x=tmp, y=rev(tmp))
+x
+```
+
+Let's plot it now!
+```{r}
+plot(x)
+```
+
+>Q. Can we use *kmeans()* to cluster this data, setting k to 2 and nstart to 20? 
+
+```{r}
+km <- kmeans(x, centers=2, nstart=20)
+km
+```
+
+> Q. How many points are in each cluster?
+
+```{r}
+km$size
+```
+
+> Q. What 'component' of your result object details cluster assignment/membersip?
+
+```{r}
+km$cluster
+```
+
+> What 'component' of your result object details cluster centers?
+
+```{r}
+km$centers
+```
+
+>Q. Plot x colored by the kmeans cluster assignemnt and add cluster centers as blue points.
+
+```{r}
+plot(x, col= km$cluster)
+points(km$centers, col = "blue", pch = 16, cex = 1.5)
+```
+
+A big limitation with kmeans is that we have to tell it "k" (number of clusters we want).
+
+
+
+#hclust clustering
+Now, lets use the same data with *hclust()*
+We will demonstrate the use of dist(), hclust(), plot(), and cutree() functions to do clustering.
+
+```{r}
+hc <- hclust(dist(x))
+hc
+```
+Now we can use hc to make a plot, it will result in a dendrogram!
+```{r}
+plot(hc)
+```
+
+
+To get our cluster membership vector, we have to do a little bit more work. We have to "cut" the tree the tree where we think it makes sense most.For this we will use the *cutree()* function. 
+
+```{r}
+cutree(hc, h = 6)
+```
+
+You can also call *cutree()* setting the k = the number of groups/clusters you want 
+
+```{r}
+groups <- cutree(hc, k=2)
+```
+
+Make our resluts a plot!
+
+```{r}
+plot(x, col=groups)
+```
+
+
+
+#PCA- Principal Component Analysis
+
+First let's import the data
+```{r}
+url <-"https://tinyurl.com/UK-foods"
+x <- read.csv(url)
+```
+
+> **Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?**
+
+```{r}
+nrow(x)
+ncol(x)
+```
+
+Next, we should check our data, using the 'View(x)'
+
+The row names are set improperly! Lets fix this
+
+```{r}
+x <- read.csv(url, row.names=1)
+head(x)
+```
+> **Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?** 
+
+I prefer to fix the row-names problem using the approach in which the row names are corrected while we have Rstudio read the data file. The other method in which we could have removed the first column using x [,-1] would work the first time, however it is risky because it would delete columns every time we run it, which we do not want to occur. 
+
+> **Q3: Changing what optional argument in the above barplot() function results in the following plot?**
+
+
+```{r}
+barplot(as.matrix(x), col=rainbow(nrow(x)))
+
+```
+
+
+This is unhelpful...lets try again 
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+```
+
+
+Setting beside=T or TRUE tells the function that we want the bars side by side.
+
+>**Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?**
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+```
+
+
+If a given point lies on the diagonal or a given plot, it means that the paired countries have similar values for that specific variable in the data.
+
+>**Q6. What is the main differences between N. Ireland and the other countries of the UK in terms of this data-set?** 
+
+When each of the other countries is paired with N. Ireland, the plot is not as good of a diagonal line, meaning its is less similar to the other countries. However the other countries have diagonals when paired to each other, meaning they are more similar in this data-set. This plot makes it difficult for us to discover the main difference because it does not provide us with enough details.
+
+#PCA to the rescue 
+
+The main function in base R for PCA is *prcomp()*
+This wants the transpose of our data, meaning we need to flip the rows and columns.
+```{r}
+t(x)
+```
+
+Now we can use PCA!
+
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+
+```{r}
+attributes(pca)
+```
+```{r}
+
+```
+
+
+>**Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points.**
+
+```{r}
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", xlim=c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x))
+```
+
+
+
+>**Q8. Customize your plot so that the colors of the country names match the colors in our UK and Ireland map and table at start of this document.**
+
+```{r}
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", xlim=c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x), col= c("orange", "red", "blue", "green"))
+```
+
+
+
+Let's dig deeper into PCA.
+Lets calculate how much variation each PC counts for. 
+```{r}
+v <- round( pca$sdev^2/sum(pca$sdev^2) * 100 )
+v
+```
+
+Lets look at this on a graph!
+```{r}
+barplot(v, xlab="Principal Component", ylab="Percent Variation")
+```
+
+
+Because PC1 accounts for the most variation, we are going to focus on that.
+
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,1], las=2 )
+```
+
+
+
+>**Q9: Generate a similar ‘loadings plot’ for PC2. What two food groups feature prominantely and what does PC2 maninly tell us about?** 
+
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,2], las=2 )
+```
+
+
+The two food groups it features prominently are Fresh_potatoes and Soft_drinks. PC2 mainly tells us about the second axis, explaining the second most variability of the data. 
+
+
+#Biplots
+## The inbuilt biplot() can be useful for small datasets 
+
+```{r}
+biplot(pca)
+```
+
+
+
+#Using PCA for RNA-seq data
+
+```{r}
+url2 <- "https://tinyurl.com/expression-CSV"
+rna.data <- read.csv(url2, row.names=1)
+head(rna.data)
+```
+> **Q10: How many genes and samples are in this data set?** 
+The samples are the columns and the genes are the rows.
+
+```{r}
+ncol(rna.data)
+nrow(rna.data)
+```
+
+Again lets transpose and plot our data 
+```{r}
+pca2 <- prcomp(t(rna.data), scale=TRUE)
+plot(pca2$x[,1], pca2$x[,2], xlab="PC1", ylab="PC2")
+```
+
+
+Then, we can look at a numerical summary
+```{r}
+summary(pca2)
+```
+
+Similar to the first data set, PC1 is still where "all the action is". 
+Let's look into this further!
+
+```{r}
+plot(pca2, main="Quick scree plot")
+```
+
+
+```{r}
+## Variance captured per PC 
+pca.var <- pca2$sdev^2
+
+## Percent variance is often more informative to look at 
+pca.var.per <- round(pca.var/sum(pca.var)*100, 1)
+pca.var.per
+```
+
+We can use this data to make our own scree plot
+```{r}
+barplot(pca.var.per, main="Scree Plot", 
+        names.arg = paste0("PC", 1:10),
+        xlab="Principal Component", ylab="Percent Variation")
+```
+
+
+Let's add details to make it more useful
+```{r}
+## A vector of colors for wt and ko samples
+colvec <- colnames(rna.data)
+colvec[grep("wt", colvec)] <- "red"
+colvec[grep("ko", colvec)] <- "blue"
+
+plot(pca2$x[,1], pca2$x[,2], col=colvec, pch=16,
+     xlab=paste0("PC1 (", pca.var.per[1], "%)"),
+     ylab=paste0("PC2 (", pca.var.per[2], "%)"))
+
+text(pca2$x[,1], pca2$x[,2], labels = colnames(rna.data), pos=c(rep(4,5), rep(2,5)))
+```
+
+
+Let's also use our ggplot that we learned priorly!
+
+```{r}
+library(ggplot2)
+
+df <- as.data.frame(pca2$x)
+
+# Our first basic plot
+ggplot(df) + 
+  aes(PC1, PC2) + 
+  geom_point()
+```
+
+
+Then we can add specific labels
+
+```{r}
+# Add a 'wt' and 'ko' "condition" column
+df$samples <- colnames(rna.data) 
+df$condition <- substr(colnames(rna.data),1,2)
+
+p <- ggplot(df) + 
+        aes(PC1, PC2, label=samples, col=condition) + 
+        geom_label(show.legend = FALSE)
+p
+```
+
+
+Finally add some polish!
+```{r}
+p + labs(title="PCA of RNASeq Data",
+       subtitle = "PC1 clealy seperates wild-type from knock-out samples",
+       x=paste0("PC1 (", pca.var.per[1], "%)"),
+       y=paste0("PC2 (", pca.var.per[2], "%)"),
+       caption="BIMM143 example data") +
+     theme_bw()
+
+```
+
