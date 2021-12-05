@@ -13,8 +13,7 @@ It showcases my work throughout this quarter and the skills I learned in this co
 - Transcriptomics and the Analysis of RNA-Seq data [source](https://github.com/camrynmccann/bimm143/blob/main/Class15/Class15pt1.pdf)
 - Vaccination Rate Mini-project [source](https://github.com/camrynmccann/bimm143/blob/main/Class17/Class17_Covid19MiniProject.pdf)
 
-## As github_documents
-- Data Explorationa and Visualization with R [source]
+## As Rmarkdown github_documents
 - R Functions and R Packages from CRAN and BioConductor [source](https://github.com/camrynmccann/bimm143/blob/main/Class06!.Rmd)
 - Introduction to Machine Learning in Bioinformatics [source](https://github.com/camrynmccann/bimm143/blob/main/Class08!.Rmd)
 - Principal Component Analysis Mini-project [source]
